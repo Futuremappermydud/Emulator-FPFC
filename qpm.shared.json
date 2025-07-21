@@ -76,10 +76,35 @@
         "id": "config-utils",
         "versionRange": "^2.0.3",
         "additionalData": {}
+      },
+      {
+        "id": "custom-types",
+        "versionRange": "^0.18.3",
+        "additionalData": {}
       }
     ]
   },
   "restoredDependencies": [
+    {
+      "dependency": {
+        "id": "custom-types",
+        "versionRange": "=0.18.3",
+        "additionalData": {
+          "soLink": "https://github.com/QuestPackageManager/Il2CppQuestTypePatching/releases/download/v0.18.3/libcustom-types.so",
+          "debugSoLink": "https://github.com/QuestPackageManager/Il2CppQuestTypePatching/releases/download/v0.18.3/debug_libcustom-types.so",
+          "overrideSoName": "libcustom-types.so",
+          "modLink": "https://github.com/QuestPackageManager/Il2CppQuestTypePatching/releases/download/v0.18.3/CustomTypes.qmod",
+          "branchName": "version/v0_18_3",
+          "compileOptions": {
+            "cppFlags": [
+              "-Wno-invalid-offsetof"
+            ]
+          },
+          "cmake": true
+        }
+      },
+      "version": "0.18.3"
+    },
     {
       "dependency": {
         "id": "rapidjson-macros",
