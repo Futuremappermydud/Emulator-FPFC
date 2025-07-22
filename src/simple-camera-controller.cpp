@@ -1,6 +1,8 @@
 #include "simple-camera-controller.hpp"
+#include "Config.hpp"
 #include "operators.hpp"
 #include "logger.hpp"
+#include "keyboard-keyer.hpp"
 
 #include "UnityEngine/Input.hpp"
 #include "UnityEngine/KeyCode.hpp"
@@ -61,7 +63,7 @@ void FPFC::SimpleCameraController::Awake()
 
 void FPFC::SimpleCameraController::Update()
 {
-    if(Input::GetMouseButton(1))
+    if(Input::GetMouseButton(getConfig().reverseClick.GetValue() ? 0 : 1))
     {
         Vector2 mouseMovement = GetInputLookRotation() * MOUSE_SENSITIVITY_MULTIPLIER;
         float sensitivityFactor = animationCurve->Evaluate(mouseMovement.magnitude);
@@ -77,6 +79,12 @@ void FPFC::SimpleCameraController::Update()
 Vector3 FPFC::SimpleCameraController::GetInputTranslationDirection(UnityEngine::Quaternion rotation)
 {
     Vector3 direction(0, 0, 0);
+
+    if (_isOpen)
+    {
+        return direction;
+    }
+
     if(Input::GetKey(KeyCode::W))
     {
         direction += rotation * Vector3::getStaticF_forwardVector();

@@ -2,6 +2,7 @@
 #include "_config.hpp"
 #include "Config.hpp"
 #include "simple-camera-controller.hpp"
+#include "keyboard-keyer.hpp"
 
 #include "scotland2/shared/modloader.h"
 
@@ -26,8 +27,11 @@
 
 #include "GlobalNamespace/FirstPersonFlyingController.hpp"
 #include "GlobalNamespace/LightManager.hpp"
+#include "GlobalNamespace/IVRPlatformHelper.hpp"
 #include "GlobalNamespace/GameplaySetupViewController.hpp"
 #include "GlobalNamespace/AudioTimeSyncController.hpp"
+
+#include "HMUI/UIKeyboard.hpp"
 
 using namespace UnityEngine;
 
@@ -61,13 +65,26 @@ MAKE_HOOK_MATCH(MouseState_GetButtonState, &VRUIControls::MouseState::GetButtonS
 {
   auto state = MouseState_GetButtonState(self, button);
   // Makes right clicking not interact with menus
-  if(Input::GetMouseButtonDown(1))
+  if(Input::GetMouseButtonDown(1) && !getConfig().reverseClick.GetValue())
   {
     // 1 = not pressed ??
     state->_pressedValue = 1;
   }
 
   return state;
+}
+
+MAKE_HOOK_MATCH(VRController_get_triggerValue, &GlobalNamespace::VRController::get_triggerValue, float, GlobalNamespace::VRController* self)
+{
+    if (!self->_mouseMode)
+    {
+        return self->_vrPlatformHelper->GetTriggerValue(self->node);
+    }
+    if (!Input::GetMouseButton(getConfig().reverseClick.GetValue() ? 1 : 0))
+    {
+        return 0.0f;
+    }
+    return 1.0f;
 }
 
 MAKE_HOOK_MATCH(FirstPersonFlyingController_OnEnable, &GlobalNamespace::FirstPersonFlyingController::OnEnable, void, GlobalNamespace::FirstPersonFlyingController* self)
@@ -84,6 +101,14 @@ MAKE_HOOK_MATCH(FirstPersonFlyingController_OnDisable, &GlobalNamespace::FirstPe
 
 MAKE_HOOK_MATCH(FirstPersonFlyingController_Update, &GlobalNamespace::FirstPersonFlyingController::Update, void, GlobalNamespace::FirstPersonFlyingController* self)
 {}
+
+MAKE_HOOK_MATCH(UIKeyboard_Awake, &HMUI::UIKeyboard::Awake, void, HMUI::UIKeyboard* self)
+{
+    if(!self->gameObject->GetComponent<FPFC::KeyboardKeyer*>())
+    {
+      self->gameObject->AddComponent<FPFC::KeyboardKeyer*>();
+    }
+}
 
 MOD_EXTERN_FUNC void setup(CModInfo *info) noexcept {
   *info = modInfo.to_c();
@@ -106,8 +131,10 @@ MOD_EXTERN_FUNC void late_load() noexcept {
   INSTALL_HOOK(Logger, FirstPersonFlyingController_Update);
   INSTALL_HOOK(Logger, AudioTimeSyncController_Awake);
   INSTALL_HOOK(Logger, MouseState_GetButtonState);
+  INSTALL_HOOK(Logger, VRController_get_triggerValue);
   INSTALL_HOOK(Logger, FirstPersonFlyingController_OnEnable);
   INSTALL_HOOK(Logger, FirstPersonFlyingController_OnDisable);
+  INSTALL_HOOK(Logger, UIKeyboard_Awake);
 
   // Offset of UnityEngine_Screen_SetResolution_Internal
   constexpr uintptr_t methodOffset = 0x00673b70;
