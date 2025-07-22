@@ -2,6 +2,7 @@
 #include "_config.hpp"
 #include "Config.hpp"
 #include "simple-camera-controller.hpp"
+#include "settings.hpp"
 #include "keyboard-keyer.hpp"
 
 #include "scotland2/shared/modloader.h"
@@ -31,11 +32,15 @@
 #include "GlobalNamespace/GameplaySetupViewController.hpp"
 #include "GlobalNamespace/AudioTimeSyncController.hpp"
 
+#include "bsml/shared/BSML.hpp"
+
 #include "HMUI/UIKeyboard.hpp"
 
 using namespace UnityEngine;
 
 static modloader::ModInfo modInfo{MOD_ID, VERSION, 0};
+
+std::vector<UnityEngine::Vector2> Config_t::RESOLUTIONS({{1280, 720}, {1920, 1080}, {2560, 1440}, {3024, 1890}, /* Custom Resolution */ {0, 0}});
 
 MAKE_HOOK_MATCH(AudioTimeSyncController_Awake, &GlobalNamespace::AudioTimeSyncController::Start, void, GlobalNamespace::AudioTimeSyncController* self)
 {
@@ -48,9 +53,22 @@ MAKE_HOOK_MATCH(AudioTimeSyncController_Awake, &GlobalNamespace::AudioTimeSyncCo
 
 MAKE_HOOK(SetResolution_Internal, nullptr, void, int width, int height, FullScreenMode fullScreenMode, RefreshRate* refreshRate)
 {
-  width = getConfig().resolutionX.GetValue();
-  height = getConfig().resolutionY.GetValue();
+  if(getConfig().resolution.GetValue() == 4)
+  {
+    width = getConfig().customWidth.GetValue();
+    height = getConfig().customHeight.GetValue();
+  }
+  else
+  {
+    width = Config_t::RESOLUTIONS[getConfig().resolution.GetValue()].x;
+    height = Config_t::RESOLUTIONS[getConfig().resolution.GetValue()].y;
+  }
   SetResolution_Internal(width, height, fullScreenMode, refreshRate);
+  auto camera = Camera::get_main();
+  if(camera)
+  {
+    camera->fieldOfView = getConfig().fieldOfView.GetValue();
+  }
 }
 
 MAKE_HOOK_MATCH(CommandLineParser_GetCommandLineArgs, &BGLib::DotnetExtension::CommandLine::CommandLineParser::GetCommandLineArgs, ArrayW<StringW>)
@@ -123,6 +141,8 @@ MOD_EXTERN_FUNC void late_load() noexcept {
   il2cpp_functions::Init();
 
   custom_types::Register::AutoRegister();
+
+  BSML::Register::RegisterSettingsMenu("FPFC", &FPFC::Settings::DidActivate, true);
 
   Logger.info("Installing hooks...");
 
