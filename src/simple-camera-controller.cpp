@@ -33,23 +33,24 @@ void FPFC::SimpleCameraController::Awake()
 {
     transform->position = DEFAULT_POSITION;
 
-    auto menuPlayerController = Resources::FindObjectsOfTypeAll<GlobalNamespace::MenuPlayerController*>()->FirstOrDefault();
-    if(menuPlayerController)
+    // MenuPlayerController still exists in the game scene
+    // So locate pause menu manager first and if it is not found then we are in the menu scene
+    auto pauseMenuManager = Resources::FindObjectsOfTypeAll<GlobalNamespace::PauseMenuManager*>()->FirstOrDefault();
+    if(pauseMenuManager)
     {
-        leftController = menuPlayerController->leftController;
-        rightController = menuPlayerController->rightController;
+        leftController = pauseMenuManager->transform->Find("MenuControllers/ControllerLeft")->GetComponent<GlobalNamespace::VRController*>();
+        rightController = pauseMenuManager->transform->Find("MenuControllers/ControllerRight")->GetComponent<GlobalNamespace::VRController*>();
     }
     else
     {
-        auto pauseMenuManager = Resources::FindObjectsOfTypeAll<GlobalNamespace::PauseMenuManager*>()->FirstOrDefault();
-        if(!pauseMenuManager)
+        auto menuPlayerController = Resources::FindObjectsOfTypeAll<GlobalNamespace::MenuPlayerController*>()->FirstOrDefault();
+        if(!menuPlayerController)
         {
             Logger.error("Could not find controllers!");
             return;
         }
-        
-        leftController = pauseMenuManager->transform->Find("MenuControllers/ControllerLeft")->GetComponent<GlobalNamespace::VRController*>();
-        rightController = pauseMenuManager->transform->Find("MenuControllers/ControllerRight")->GetComponent<GlobalNamespace::VRController*>();
+        leftController = menuPlayerController->leftController;
+        rightController = menuPlayerController->rightController;
     }
     
     leftController->enabled = false;
