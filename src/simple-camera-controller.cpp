@@ -52,7 +52,7 @@ void FPFC::SimpleCameraController::Awake()
         leftController = menuPlayerController->leftController;
         rightController = menuPlayerController->rightController;
     }
-    
+
     leftController->enabled = false;
     rightController->enabled = false;
     leftController->mouseMode = true;
@@ -67,7 +67,7 @@ void FPFC::SimpleCameraController::Update()
         float sensitivityFactor = animationCurve->Evaluate(mouseMovement.magnitude);
         transform->localEulerAngles += Vector3(mouseMovement.x, mouseMovement.y, 0) * sensitivityFactor;
     }
-    
+
     transform->localPosition += GetInputTranslationDirection(transform->rotation) * Time::get_deltaTime() * MOVEMENT_SENSITIVITY_MULTIPLIER;
 
     leftController->transform->SetPositionAndRotation(transform->position, transform->rotation);

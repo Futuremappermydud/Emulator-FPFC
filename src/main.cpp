@@ -75,6 +75,7 @@ MAKE_HOOK_MATCH(FirstPersonFlyingController_OnEnable, &GlobalNamespace::FirstPer
   if(!self->_camera->gameObject->GetComponent<FPFC::SimpleCameraController*>())
   {
     self->_camera->gameObject->AddComponent<FPFC::SimpleCameraController*>();
+    self->_camera->fieldOfView = getConfig().fov.GetValue();
   }
 }
 
@@ -111,6 +112,6 @@ MOD_EXTERN_FUNC void late_load() noexcept {
   // Offset of UnityEngine_Screen_SetResolution_Internal
   constexpr uintptr_t methodOffset = 0x00673b70;
   INSTALL_HOOK_DIRECT(Logger, SetResolution_Internal, (void*)(baseAddr("libunity.so") + methodOffset));
-  
+
   Logger.info("Installed all hooks!");
 }
